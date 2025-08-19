@@ -6,7 +6,6 @@ local character = Player.Character or Player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local hrp = character:WaitForChild("HumanoidRootPart")
 
--- Create safety net
 local safetyPart = workspace:FindFirstChild("SafetyNet") or Instance.new("Part")
 safetyPart.Size = Vector3.new(5000, 1, 5000)
 safetyPart.Position = Vector3.new(0, -50, 0)
@@ -16,582 +15,557 @@ safetyPart.CanCollide = true
 safetyPart.Name = "SafetyNet"
 safetyPart.Parent = workspace
 
--- History: table of {cframe, grounded}
 local history = {}
 local maxHistory = 10
 local wasFalling = false
 
--- Record every second
-task.spawn(function()
-	while true do
-		if hrp and hrp.Parent then
-			local grounded = (humanoid.FloorMaterial ~= Enum.Material.Air)
-			table.insert(history, 1, {
-				cf = hrp.CFrame,
-				grounded = grounded
-			})
-			if #history > maxHistory then
-				table.remove(history)
-			end
-			wasFalling = not grounded -- update fall state
-		end
-		task.wait(1)
-	end
-end)
+task.spawn(
+    function()
+        while true do
+            if hrp and hrp.Parent then
+                local grounded = (humanoid.FloorMaterial ~= Enum.Material.Air)
+                table.insert(
+                    history,
+                    1,
+                    {
+                        cf = hrp.CFrame,
+                        grounded = grounded
+                    }
+                )
+                if #history > maxHistory then
+                    table.remove(history)
+                end
+                wasFalling = not grounded
+            end
+            task.wait(1)
+        end
+    end
+)
 
--- Teleport when touching safety net
-safetyPart.Touched:Connect(function(hit)
-	if hit:IsDescendantOf(character) and wasFalling then
-		-- Find the most recent grounded spot at least 2s ago
-		local bv = Instance.new("BodyVelocity")
-		bv.Velocity = Vector3.new(0,0,0)
-		bv.Parent = character.Head
-		local targetCF = nil
-		for i = 3, #history do
-			if history[i] and history[i].grounded then
-				targetCF = history[i].cf
-				break
-			end
-		end
-		-- fallback if no valid safe spot found
-		if not targetCF and history[1] then
-			targetCF = history[1].cf
-		end
-		if targetCF then
-			hrp.CFrame = targetCF + Vector3.new(0, 5, 0)
-		end
-		wait(0.2)
-		bv:Destroy()
-	end
-end)
+safetyPart.Touched:Connect(
+    function(hit)
+        if hit:IsDescendantOf(character) and wasFalling then
+            local bv = Instance.new("BodyVelocity")
+            bv.Velocity = Vector3.new(0, 0, 0)
+            bv.Parent = character.Head
+            local targetCF = nil
+            for i = 3, #history do
+                if history[i] and history[i].grounded then
+                    targetCF = history[i].cf
+                    break
+                end
+            end
 
--- Reset on respawn
-Player.CharacterAdded:Connect(function(char)
-	character = char
-	humanoid = character:WaitForChild("Humanoid")
-	hrp = character:WaitForChild("HumanoidRootPart")
-	history = {}
-	wasFalling = false
-end)
+            if not targetCF and history[1] then
+                targetCF = history[1].cf
+            end
+            if targetCF then
+                hrp.CFrame = targetCF + Vector3.new(0, 5, 0)
+            end
+            wait(0.2)
+            bv:Destroy()
+        end
+    end
+)
+
+Player.CharacterAdded:Connect(
+    function(char)
+        character = char
+        humanoid = character:WaitForChild("Humanoid")
+        hrp = character:WaitForChild("HumanoidRootPart")
+        history = {}
+        wasFalling = false
+    end
+)
 
 local Uis = game:GetService("UserInputService")
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
--- Window
 local Window =
-	Rayfield:CreateWindow(
-		{
-			Name = "Neltar Hub",
-			Icon = 0,
-			LoadingTitle = "Loading Neltar Hub",
-			ShowText = "Neltar",
-			Theme = "AmberGlow",
-			ToggleUIKeybind = "K",
-			DisableRayfieldPrompts = false,
-			DisableBuildWarnings = false, 
-            Discord = {
-				Enabled = true, -- Prompt the user to join your Discord server if their executor supports it
-				Invite = "MYC2Cth5Us", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-				RememberJoins = true -- Set this to false to make them join the discord every time they load it up
-			},-- Set this to true to use our key system
-			KeySystem = true,
-			KeySettings = {
-				Title = "Key System",
-				Subtitle = "Please do the key system to access the script.",
-				Note = "Join the discord server https://discord.gg/MYC2Cth5Us", -- Use this to tell the user how to get a key
-				FileName = "THISISAKEYFORASCRIPTJ78", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
-				SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
-				GrabKeyFromSite = true, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-				Key = "https://pastebin.com/raw/ztfwJMkp" -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
-			},
-			ConfigurationSaving = {
-				Enabled = true,
-				FolderName = "NeltarHub",
-				FileName = "Neltar Hub"
-			}
-		}
-	)
+    Rayfield:CreateWindow(
+    {
+        Name = "Neltar Hub",
+        Icon = 0,
+        LoadingTitle = "Loading Neltar Hub",
+        ShowText = "Neltar",
+        Theme = "AmberGlow",
+        ToggleUIKeybind = "K",
+        DisableRayfieldPrompts = false,
+        DisableBuildWarnings = false,
+        Discord = {
+            Enabled = true,
+            Invite = "MYC2Cth5Us",
+            RememberJoins = true
+        },
+        KeySystem = true,
+        KeySettings = {
+            Title = "Key System",
+            Subtitle = "Please do the key system to access the script.",
+            Note = "Join the discord server https://discord.gg/MYC2Cth5Us",
+            FileName = "THISISAKEYFORASCRIPTJ78",
+            SaveKey = false,
+            GrabKeyFromSite = true,
+            Key = "https://pastebin.com/raw/ztfwJMkp"
+        },
+        ConfigurationSaving = {
+            Enabled = true,
+            FolderName = "NeltarHub",
+            FileName = "Neltar Hub"
+        }
+    }
+)
 
-------------------------------------------------------
--- Trolls Tab
-------------------------------------------------------
 local Tab = Window:CreateTab("Trolls", 0)
 local Section = Tab:CreateSection("Parts Troll")
 
--- Spam Parts
 local SpammingParts = false
 local SpamParts =
-	Tab:CreateToggle(
-		{
-			Name = "Spam Parts",
-			CurrentValue = false,
-			Flag = "Sp",
-			Callback = function(Value)
-				SpammingParts = Value
-			end
-		}
-	)
-
-task.spawn(
-	function()
-		while true do
-			if SpammingParts then
-				for _, part in workspace:GetChildren() do
-					if
-						part:FindFirstChild("TouchInterest") and part.Transparency == 0 and
-						not string.find(part.Name, "KILLPART")
-					then
-						task.spawn(
-							function()
-								firetouchinterest(Player.Character.HumanoidRootPart, part, 0)
-								task.wait(0.01)
-								firetouchinterest(Player.Character.HumanoidRootPart, part, 1)
-							end
-						)
-					end
-				end
-			end
-			task.wait(0.1)
-		end
-	end
+    Tab:CreateToggle(
+    {
+        Name = "Spam Parts",
+        CurrentValue = false,
+        Flag = "Sp",
+        Callback = function(Value)
+            SpammingParts = Value
+        end
+    }
 )
 
--- Make All Parts Disappear
+task.spawn(
+    function()
+        while true do
+            if SpammingParts then
+                for _, part in workspace:GetChildren() do
+                    if
+                        part:FindFirstChild("TouchInterest") and part.Transparency == 0 and
+                            not string.find(part.Name, "KILLPART")
+                     then
+                        task.spawn(
+                            function()
+                                firetouchinterest(Player.Character.HumanoidRootPart, part, 0)
+                                task.wait(0.01)
+                                firetouchinterest(Player.Character.HumanoidRootPart, part, 1)
+                            end
+                        )
+                    end
+                end
+            end
+            task.wait(0.1)
+        end
+    end
+)
+
 local DisableDissapearing = ({})
 local Button =
-	Tab:CreateButton(
-		{
-			Name = "Make All Parts Dissapear",
-			Callback = function()
-				local oldsetting
-				if DisableDissapearing then
-					oldsetting = DisableDissapearing.CurrentValue
-					DisableDissapearing:Set(false)
-				end
+    Tab:CreateButton(
+    {
+        Name = "Make All Parts Dissapear",
+        Callback = function()
+            local oldsetting
+            if DisableDissapearing then
+                oldsetting = DisableDissapearing.CurrentValue
+                DisableDissapearing:Set(false)
+            end
 
-				for _, part in workspace:GetChildren() do
-					if
-						part:FindFirstChild("TouchInterest") and part.Transparency == 0 and
-						not string.find(part.Name, "KILLPART")
-					then
-						task.spawn(
-							function()
-								firetouchinterest(Player.Character.HumanoidRootPart, part, 0)
-								task.wait(0.01)
-								firetouchinterest(Player.Character.HumanoidRootPart, part, 1)
-							end
-						)
-					end
-				end
+            for _, part in workspace:GetChildren() do
+                if
+                    part:FindFirstChild("TouchInterest") and part.Transparency == 0 and
+                        not string.find(part.Name, "KILLPART")
+                 then
+                    task.spawn(
+                        function()
+                            firetouchinterest(Player.Character.HumanoidRootPart, part, 0)
+                            task.wait(0.01)
+                            firetouchinterest(Player.Character.HumanoidRootPart, part, 1)
+                        end
+                    )
+                end
+            end
 
-				if DisableDissapearing then
-					DisableDissapearing:Set(oldsetting)
-				end
-			end
-		}
-	)
+            if DisableDissapearing then
+                DisableDissapearing:Set(oldsetting)
+            end
+        end
+    }
+)
 
 local Section = Tab:CreateSection("Slap Spammers")
 
 local Target = nil
 local InputConnection = nil
 
--- Player Dropdown (for Mobile)
 local playerDropdown =
-	Tab:CreateDropdown(
-		{
-			Name = "Select Target (Mobile/PC)",
-			Options = {},
-			CurrentOption = {},
-			MultipleOptions = false,
-			Flag = "TargetDropdown",
-			Callback = function(Option)
-				if Option and #Option > 0 then
-					local selectedName = Option[1]
-					local plr = game.Players:FindFirstChild(selectedName)
-					if plr then
-						Target = plr
-						Rayfield:Notify(
-							{
-								Title = "Target Selected",
-								Content = Target.Name,
-								Duration = 2,
-								Image = "circle-plus"
-							}
-						)
-					end
-				else
-					Target = nil
-				end
-			end
-		}
-	)
+    Tab:CreateDropdown(
+    {
+        Name = "Select Target (Mobile/PC)",
+        Options = {},
+        CurrentOption = {},
+        MultipleOptions = false,
+        Flag = "TargetDropdown",
+        Callback = function(Option)
+            if Option and #Option > 0 then
+                local selectedName = Option[1]
+                local plr = game.Players:FindFirstChild(selectedName)
+                if plr then
+                    Target = plr
+                    Rayfield:Notify(
+                        {
+                            Title = "Target Selected",
+                            Content = Target.Name,
+                            Duration = 2,
+                            Image = "circle-plus"
+                        }
+                    )
+                end
+            else
+                Target = nil
+            end
+        end
+    }
+)
 
--- Update dropdown whenever players change
--- Update dropdown whenever players change
 local function UpdateDropdown()
-	local names = {}
-	for _, plr in ipairs(game.Players:GetPlayers()) do
-		if plr ~= Player then
-			table.insert(names, plr.Name)
-		end
-	end
-	playerDropdown:Refresh(names)
+    local names = {}
+    for _, plr in ipairs(game.Players:GetPlayers()) do
+        if plr ~= Player then
+            table.insert(names, plr.Name)
+        end
+    end
+    playerDropdown:Refresh(names)
 end
 
 game.Players.PlayerAdded:Connect(UpdateDropdown)
 game.Players.PlayerRemoving:Connect(UpdateDropdown)
 
--- Wait a moment to make sure all players are loaded
-UpdateDropdown() --
+UpdateDropdown()
 game.Players.PlayerAdded:Connect(UpdateDropdown)
 game.Players.PlayerRemoving:Connect(UpdateDropdown)
 
--- Target Player Toggle [T] (PC)
 local TargetSelect =
-	Tab:CreateToggle(
-		{
-			Name = "Target Player [T] (ONLY PC)",
-			CurrentValue = false,
-			Flag = "TpT",
-			Callback = function(Value)
-				if Value then
-					InputConnection =
-					Uis.InputBegan:Connect(
-						function(input, processed)
-							if processed then
-								return
-							end
-							if input.KeyCode == Enum.KeyCode.T then
-								local mouse = Player:GetMouse()
-								local hitPart = mouse.Target
-								if hitPart then
-									local character = hitPart:FindFirstAncestorOfClass("Model")
-									if character and character:FindFirstChild("Humanoid") then
-										local plr = game.Players:GetPlayerFromCharacter(character)
-										if plr then
-											Target = plr
-											Rayfield:Notify(
-												{
-													Title = "Target Acquired",
-													Content = Target.Name,
-													Duration = 2,
-													Image = "circle-plus"
-												}
-											)
-										end
-									end
-								end
-							end
-						end
-					)
-				else
-					if InputConnection then
-						InputConnection:Disconnect()
-						InputConnection = nil
-					end
-					Target = nil
-				end
-			end
-		}
-	)
-
--- Spam Slap Target
-local SpamSlapping = false
-local SpamToggle =
-	Tab:CreateToggle(
-		{
-			Name = "Spam Slap Target",
-			CurrentValue = false,
-			Flag = "SsT",
-			Callback = function(Value)
-				if Value then
-					for _, Slap in Player.Backpack:GetChildren() do
-						if Slap:IsA("Tool") and string.find(Slap.Name, "Slap") then
-							Slap.Parent = Player.Character
-						end
-					end
-				end
-				SpamSlapping = Value
-			end
-		}
-	)
-
-task.spawn(
-	function()
-		while true do
-			if SpamSlapping and Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
-				for _, SlapTool in Player.Character:GetChildren() do
-					if
-						SlapTool:IsA("Tool") and string.find(SlapTool.Name, "Slap") and SlapTool:FindFirstChild("Event") and
-						SlapTool:FindFirstChild("Power")
-					then
-						-- teleport to target
-						Player.Character.HumanoidRootPart.CFrame =
-							Target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
-
-						-- fire slap
-						SlapTool.Event:FireServer(
-							"slash",
-							Target.Character,
-							Player.Character.HumanoidRootPart.CFrame.LookVector * (SlapTool.Power.Value * 1000)
-						)
-						task.wait(0.05)
-					end
-				end
-			end
-			task.wait(0.1)
-		end
-	end
+    Tab:CreateToggle(
+    {
+        Name = "Target Player [T] (ONLY PC)",
+        CurrentValue = false,
+        Flag = "TpT",
+        Callback = function(Value)
+            if Value then
+                InputConnection =
+                    Uis.InputBegan:Connect(
+                    function(input, processed)
+                        if processed then
+                            return
+                        end
+                        if input.KeyCode == Enum.KeyCode.T then
+                            local mouse = Player:GetMouse()
+                            local hitPart = mouse.Target
+                            if hitPart then
+                                local character = hitPart:FindFirstAncestorOfClass("Model")
+                                if character and character:FindFirstChild("Humanoid") then
+                                    local plr = game.Players:GetPlayerFromCharacter(character)
+                                    if plr then
+                                        Target = plr
+                                        Rayfield:Notify(
+                                            {
+                                                Title = "Target Acquired",
+                                                Content = Target.Name,
+                                                Duration = 2,
+                                                Image = "circle-plus"
+                                            }
+                                        )
+                                    end
+                                end
+                            end
+                        end
+                    end
+                )
+            else
+                if InputConnection then
+                    InputConnection:Disconnect()
+                    InputConnection = nil
+                end
+                Target = nil
+            end
+        end
+    }
 )
 
-------------------------------------------------------
--- Button Troll Section
-------------------------------------------------------
+local SpamSlapping = false
+local SpamToggle =
+    Tab:CreateToggle(
+    {
+        Name = "Spam Slap Target",
+        CurrentValue = false,
+        Flag = "SsT",
+        Callback = function(Value)
+            if Value then
+                for _, Slap in Player.Backpack:GetChildren() do
+                    if Slap:IsA("Tool") and string.find(Slap.Name, "Slap") then
+                        Slap.Parent = Player.Character
+                    end
+                end
+            end
+            SpamSlapping = Value
+        end
+    }
+)
+
+task.spawn(
+    function()
+        while true do
+            if SpamSlapping and Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
+                for _, SlapTool in Player.Character:GetChildren() do
+                    if
+                        SlapTool:IsA("Tool") and string.find(SlapTool.Name, "Slap") and SlapTool:FindFirstChild("Event") and
+                            SlapTool:FindFirstChild("Power")
+                     then
+                        Player.Character.HumanoidRootPart.CFrame =
+                            Target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+
+                        SlapTool.Event:FireServer(
+                            "slash",
+                            Target.Character,
+                            Player.Character.HumanoidRootPart.CFrame.LookVector * (SlapTool.Power.Value * 1000)
+                        )
+                        task.wait(0.05)
+                    end
+                end
+            end
+            task.wait(0.1)
+        end
+    end
+)
+
 local Section3 = Tab:CreateSection("Button Troll")
 local autotrollhit = nil
 local AutoTrolling = false
 
 local AutoButtonTroll =
-	Tab:CreateToggle(
-		{
-			Name = "Auto Button Troll",
-			CurrentValue = false,
-			Flag = "Abt",
-			Callback = function(Value)
-				AutoTrolling = Value
-				if AutoTrolling then
-					-- Create invisible part
-					autotrollhit = Instance.new("Part")
-					autotrollhit.Parent = workspace
-					autotrollhit.Position = Vector3.new(-57.9999924, 105, -3.99999905)
-					autotrollhit.Size = Vector3.new(10, 10, 10)
-					autotrollhit.Anchored = true
-					autotrollhit.CanCollide = false
-					autotrollhit.Transparency = 1
-					autotrollhit.Name = "Realshi"
+    Tab:CreateToggle(
+    {
+        Name = "Auto Button Troll",
+        CurrentValue = false,
+        Flag = "Abt",
+        Callback = function(Value)
+            AutoTrolling = Value
+            if AutoTrolling then
+                autotrollhit = Instance.new("Part")
+                autotrollhit.Parent = workspace
+                autotrollhit.Position = Vector3.new(-57.9999924, 105, -3.99999905)
+                autotrollhit.Size = Vector3.new(10, 10, 10)
+                autotrollhit.Anchored = true
+                autotrollhit.CanCollide = false
+                autotrollhit.Transparency = 1
+                autotrollhit.Name = "Realshi"
 
-					-- Start loop
-					task.spawn(
-						function()
-							while AutoTrolling and autotrollhit do
-								task.wait(0.5)
-								for _, player in ipairs(game.Players:GetPlayers()) do
-									if
-										player.Character and player.Character:FindFirstChild("HumanoidRootPart") and
-										autotrollhit
-									then
-										local dist =
-										(player.Character.HumanoidRootPart.Position - autotrollhit.Position).Magnitude
-										if dist < 9 then
-											for _, button in workspace:GetChildren() do
-												if
-													button:IsA("Part") and button.BrickColor == BrickColor.new("Lime green") and
-													not string.find(button.Name, "KILLPART")
-												then
-													task.spawn(
-														function()
-															if
-																Player.Character and
-																Player.Character:FindFirstChild("HumanoidRootPart")
-															then
-																firetouchinterest(
-																	Player.Character.HumanoidRootPart,
-																	button,
-																	0
-																)
-																task.wait(0.05)
-																firetouchinterest(
-																	Player.Character.HumanoidRootPart,
-																	button,
-																	1
-																)
-															end
-														end
-													)
-												end
-											end
-										end
-									end
-								end
-							end
-						end
-					)
-				else
-					-- Destroy part safely
-					if autotrollhit then
-						autotrollhit:Destroy()
-						autotrollhit = nil
-					end
-				end
-			end
-		}
-	)
+                task.spawn(
+                    function()
+                        while AutoTrolling and autotrollhit do
+                            task.wait(0.5)
+                            for _, player in ipairs(game.Players:GetPlayers()) do
+                                if
+                                    player.Character and player.Character:FindFirstChild("HumanoidRootPart") and
+                                        autotrollhit
+                                 then
+                                    local dist =
+                                        (player.Character.HumanoidRootPart.Position - autotrollhit.Position).Magnitude
+                                    if dist < 9 then
+                                        for _, button in workspace:GetChildren() do
+                                            if
+                                                button:IsA("Part") and button.BrickColor == BrickColor.new("Lime green") and
+                                                    not string.find(button.Name, "KILLPART")
+                                             then
+                                                task.spawn(
+                                                    function()
+                                                        if
+                                                            Player.Character and
+                                                                Player.Character:FindFirstChild("HumanoidRootPart")
+                                                         then
+                                                            firetouchinterest(
+                                                                Player.Character.HumanoidRootPart,
+                                                                button,
+                                                                0
+                                                            )
+                                                            task.wait(0.05)
+                                                            firetouchinterest(
+                                                                Player.Character.HumanoidRootPart,
+                                                                button,
+                                                                1
+                                                            )
+                                                        end
+                                                    end
+                                                )
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                )
+            else
+                if autotrollhit then
+                    autotrollhit:Destroy()
+                    autotrollhit = nil
+                end
+            end
+        end
+    }
+)
 
 local PressButtons =
-	Tab:CreateButton(
-		{
-			Name = "Press All Buttons",
-			Callback = function(Value)
-				for _, button in workspace:GetChildren() do
-					if
-						button:IsA("Part") and button.BrickColor == BrickColor.new("Lime green") and
-						not string.find(button.Name, "KILLPART")
-					then
-						task.spawn(
-							function()
-								firetouchinterest(Player.Character.HumanoidRootPart, button, 0)
-								task.wait(0.05)
-								firetouchinterest(Player.Character.HumanoidRootPart, button, 1)
-							end
-						)
-					end
-				end
-			end
-		}
-	)
+    Tab:CreateButton(
+    {
+        Name = "Press All Buttons",
+        Callback = function(Value)
+            for _, button in workspace:GetChildren() do
+                if
+                    button:IsA("Part") and button.BrickColor == BrickColor.new("Lime green") and
+                        not string.find(button.Name, "KILLPART")
+                 then
+                    task.spawn(
+                        function()
+                            firetouchinterest(Player.Character.HumanoidRootPart, button, 0)
+                            task.wait(0.05)
+                            firetouchinterest(Player.Character.HumanoidRootPart, button, 1)
+                        end
+                    )
+                end
+            end
+        end
+    }
+)
 
-------------------------------------------------------
--- Slaps Tab
-------------------------------------------------------
 local Tab2 = Window:CreateTab("Slaps", 0)
 local Section12 = Tab2:CreateSection("Givers")
 
 local GetAllSlaps =
-	Tab2:CreateButton(
-		{
-			Name = "Get All Slaps",
-			Callback = function()
-				for _, Slap in workspace:GetChildren() do
-					if Slap:FindFirstChild("Giver") and string.find(Slap.Name, "Slap") then
-						task.spawn(
-							function()
-								firetouchinterest(Player.Character.HumanoidRootPart, Slap:FindFirstChild("Giver"), 0)
-								task.wait(0.05)
-								firetouchinterest(Player.Character.HumanoidRootPart, Slap:FindFirstChild("Giver"), 1)
-							end
-						)
-					end
-				end
-			end
-		}
-	)
+    Tab2:CreateButton(
+    {
+        Name = "Get All Slaps",
+        Callback = function()
+            for _, Slap in workspace:GetChildren() do
+                if Slap:FindFirstChild("Giver") and string.find(Slap.Name, "Slap") then
+                    task.spawn(
+                        function()
+                            firetouchinterest(Player.Character.HumanoidRootPart, Slap:FindFirstChild("Giver"), 0)
+                            task.wait(0.05)
+                            firetouchinterest(Player.Character.HumanoidRootPart, Slap:FindFirstChild("Giver"), 1)
+                        end
+                    )
+                end
+            end
+        end
+    }
+)
 
 local EquipAllSlaps =
-	Tab2:CreateButton(
-		{
-			Name = "Equip All Slaps",
-			Callback = function()
-				for _, Slap in Player.Backpack:GetChildren() do
-					if string.find(Slap.Name, "Slap") then
-						Slap.Parent = Player.Character
-					end
-				end
-			end
-		}
-	)
+    Tab2:CreateButton(
+    {
+        Name = "Equip All Slaps",
+        Callback = function()
+            for _, Slap in Player.Backpack:GetChildren() do
+                if string.find(Slap.Name, "Slap") then
+                    Slap.Parent = Player.Character
+                end
+            end
+        end
+    }
+)
 
-------------------------------------------------------
--- Misc Tab
-------------------------------------------------------
 local Tab3 = Window:CreateTab("Misc", 0)
 local Section13 = Tab3:CreateSection("Touchables")
 
--- Disable Killbricks
 local DisableKillbricks =
-	Tab3:CreateToggle(
-		{
-			Name = "Disable Killbricks",
-			CurrentValue = false,
-			Flag = "Dk",
-			Callback = function(Value)
-				if Value == true then
-					for _, killbrick in workspace:GetChildren() do
-						if
-							killbrick:IsA("Part") and killbrick:FindFirstChild("TouchInterest") and
-							string.find(killbrick.Name, "KILLPART")
-						then
-							killbrick.CanTouch = false
-						end
-					end
-				else
-					for _, killbrick in workspace:GetChildren() do
-						if
-							killbrick:IsA("Part") and killbrick:FindFirstChild("TouchInterest") and
-							string.find(killbrick.Name, "KILLPART")
-						then
-							killbrick.CanTouch = true
-						end
-					end
-				end
-			end
-		}
-	)
+    Tab3:CreateToggle(
+    {
+        Name = "Disable Killbricks",
+        CurrentValue = false,
+        Flag = "Dk",
+        Callback = function(Value)
+            if Value == true then
+                for _, killbrick in workspace:GetChildren() do
+                    if
+                        killbrick:IsA("Part") and killbrick:FindFirstChild("TouchInterest") and
+                            string.find(killbrick.Name, "KILLPART")
+                     then
+                        killbrick.CanTouch = false
+                    end
+                end
+            else
+                for _, killbrick in workspace:GetChildren() do
+                    if
+                        killbrick:IsA("Part") and killbrick:FindFirstChild("TouchInterest") and
+                            string.find(killbrick.Name, "KILLPART")
+                     then
+                        killbrick.CanTouch = true
+                    end
+                end
+            end
+        end
+    }
+)
 
--- Disable Disappearing Parts
 DisableDissapearing =
-    Tab3:CreateToggle({
+    Tab3:CreateToggle(
+    {
         Name = "Disable Dissapearing Parts",
         CurrentValue = false,
         Flag = "Ddp",
         Callback = function(Value)
-				if Value == true then
-					task.spawn(
-						function()
-							while Value do
-								for _, part in ipairs(workspace:GetChildren()) do
-									if
-										part:IsA("Part") and part:FindFirstChild("TouchInterest") and
-										part.BrickColor.Name == "Lily white" and
-										not string.find(part.Name, "KILLPART")
-									then
-										part.CanTouch = false
-									end
-								end
-								task.wait(1)
-							end
-						end
-					)
-				else
-					for _, part in ipairs(workspace:GetChildren()) do
-						if
-							part:IsA("Part") and part:FindFirstChild("TouchInterest") and
-							part.BrickColor.Name == "Lily white" and
-							not string.find(part.Name, "KILLPART")
-						then
-							part.CanTouch = true
-						end
-					end
-				end
-			end
-		}
-	)
+            if Value == true then
+                task.spawn(
+                    function()
+                        while Value do
+                            for _, part in ipairs(workspace:GetChildren()) do
+                                if
+                                    part:IsA("Part") and part:FindFirstChild("TouchInterest") and
+                                        part.BrickColor.Name == "Lily white" and
+                                        not string.find(part.Name, "KILLPART")
+                                 then
+                                    part.CanTouch = false
+                                end
+                            end
+                            task.wait(1)
+                        end
+                    end
+                )
+            else
+                for _, part in ipairs(workspace:GetChildren()) do
+                    if
+                        part:IsA("Part") and part:FindFirstChild("TouchInterest") and
+                            part.BrickColor.Name == "Lily white" and
+                            not string.find(part.Name, "KILLPART")
+                     then
+                        part.CanTouch = true
+                    end
+                end
+            end
+        end
+    }
+)
 
-------------------------------------------------------
--- Anti-Slap
-------------------------------------------------------
 local Section14 = Tab3:CreateSection("Anti-s")
 
 local AntiSlap =
-	Tab3:CreateToggle(
-		{
-			Name = "Anti-Slap",
-			CurrentValue = false,
-			Flag = "As",
-			Callback = function(Value)
-				Player.Character.HumanoidRootPart.ChildAdded:Connect(
-					function(child)
-						if child:IsA("BodyVelocity") then
-							Player.Character.HumanoidRootPart.Anchored = true
-							child.Velocity = Vector3.new(0, 0, 0)
-							child.MaxForce = Vector3.new(0, 0, 0)
-						elseif child:IsA("BodyAngularVelocity") then
-							child.AngularVelocity = Vector3.new(0, 0, 0)
-							task.wait(0.2)
-							Player.Character.HumanoidRootPart.Anchored = false
-						end
-					end
-				)
-			end
-		}
-	)
+    Tab3:CreateToggle(
+    {
+        Name = "Anti-Slap",
+        CurrentValue = false,
+        Flag = "As",
+        Callback = function(Value)
+            Player.Character.HumanoidRootPart.ChildAdded:Connect(
+                function(child)
+                    if child:IsA("BodyVelocity") then
+                        Player.Character.HumanoidRootPart.Anchored = true
+                        child.Velocity = Vector3.new(0, 0, 0)
+                        child.MaxForce = Vector3.new(0, 0, 0)
+                    elseif child:IsA("BodyAngularVelocity") then
+                        child.AngularVelocity = Vector3.new(0, 0, 0)
+                        task.wait(0.2)
+                        Player.Character.HumanoidRootPart.Anchored = false
+                    end
+                end
+            )
+        end
+    }
+)
